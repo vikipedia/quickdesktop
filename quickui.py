@@ -628,127 +628,136 @@ class RadioButton(gtk.VBox,QuickWidget):
            self.radioB[i].set_sensitive(self, sensitive)
 
 
-class TreeList(gtk.VBox,QuickWidget):
+class Table(gtk.VBox, QuickWidget):    
     """
-    needs cleanup! naming conventions not followed..code is very dirty.
+    Simple table UI. To be used only for small tables. it is not a spreadsheet!
     """
-    def __init__(self, quickid=None, description=None, value=None,options=None,validator=None,property=None, hideon=None):
-	
-	QuickWidget.__init__(self, quickid, description, value, validator, hideon=hideon)
-	gtk.VBox.__init__(self, False, 0)
-        self.type = "TreeList"
+    def __init__(self, quickid=None, description=None, columnnames=[], value=[], validator=None, hideon=None, selection="single"):
+        """
+        quickid = quick id of the widget.
+        description = description if any
+        columnnames = list of column names
+        value = list of rows. for example for value=[[1,'a'],[2,'b']], [1,'a'] is first row in the table
+        """
 
-	if len(property) != ((property[0]*3)+2):
-		error(parent=None,message="Invalid number of arguments.")
-		raise ValueError("Invalid number of arguments for TreeList.")
-
-	self.scrolledwindow = gtk.ScrolledWindow()
-        self.pack_start(self.scrolledwindow,False,10)
-
-	self.tstore = self._createModel(property)
-	self._add_items(property)
-
-	self.treeview = gtk.TreeView(self.tstore)
-	self.treeview.set_rules_hint(True)
+        QuickWidget.__init__(self,quickid, description, value, validator, hideon=hideon)
+        self.type = "Table"
+        gtk.VBox.__init__(self, False, 0)
+        self.columnnames = columnnames
+        self.columncount = len(columnnames)
+        x = {'single':gtk.SELECTION_SINGLE, 'multi':gtk.SELECTION_MULTIPLE}
+        self.selectionmode = x[selection]
+        self._setupWidgets()
 	self.treeview.set_size_request(300,200)
-#        self.treeview.connect("select-cursor-row",self._getValue,property[0])
-	self._set_property(property[-1])
 
-	for i in range(property[0]):
-		self._add_column(self.treeview,property[(3*i)+1],property[(3*i)+2],i)
 
+    def _setupWidgets(self):
+        self.scrolledwindow = gtk.ScrolledWindow()
+        self.model = gtk.ListStore(*[gobject.TYPE_STRING for i in range(self.columncount)])
+
+        for row in self.value:
+            self.model.append(row)
+            
+        self.treeview = gtk.TreeView(self.model)
+            
+        self.treecolumns = [gtk.TreeViewColumn(name) for name in self.columnnames]
+        self.cells = [gtk.CellRendererText() for i in range(self.columncount) ]
+
+        for i in range(self.columncount):
+            c = self.treecolumns[i]
+            self.treeview.append_column(c)
+            c.pack_start(self.cells[i], True)
+            c.add_attribute(self.cells[i], 'text', i)
+            c.set_sort_column_id(i)
+
+        self.treeview.set_reorderable(False)
+	self.treeview.set_rules_hint(True)
         self.scrolledwindow.add(self.treeview)
+        self.pack_start(self.scrolledwindow, True, True, 0)
+        self.treeview.get_selection().set_mode(self.selectionmode)
 
-    def _createModel(self,opt):
-	type=[opt[(3*i)+2] for i in range(opt[0])]
-	store=gtk.TreeStore(*type)
-	return store
+    def setValue(self, value):
+        if self.validator:
+            self.validator(value)
 
-    def _add_column(self,tview,label,type,cno):
+        self.model.clear()
 
-	self.tvcolumn = gtk.TreeViewColumn(label)
-        self.treeview.append_column(self.tvcolumn)
-        self.cell = gtk.CellRendererText()
-        self.tvcolumn.pack_start(self.cell, True)
-        self.tvcolumn.add_attribute(self.cell, 'text', cno)
+        for row in value:
+            self.model.append(row)
 
-    def _add_items(self,opt):
+        self.value = value
+        self.fireValueChanged()
 
-	l=[opt[(3*i)+3] for i in range(opt[0])]
-	for p in range(len(opt[3])):
-		piter = self.tstore.append(None,[l[i][p] for i in range(len(l))])
+    def setSelection(self, selected):
+        """
+        set selection to given row indices.
+        """
+        selection = self.treeview.get_selection()
+        selection.unselect_all()
+        for item in selected:
+            selection.select_path(item)
 
-    def _set_property(self,sel_type):
-	self.treeselection = self.treeview.get_selection()
-	if sel_type == 'select_single':
-		self.treeselection.set_mode(gtk.SELECTION_SINGLE)
-	elif sel_type == 'select_multi':
-		self.treeselection.set_mode(gtk.SELECTION_MULTIPLE)
-	else:
-		self.treeselection.set_mode(gtk.SELECTION_SINGLE)
-
-
-    def _getValue(self,tree,data=None):
-	cno=range(data)
-	self.treeselection = self.treeview.get_selection()
-	if self.treeselection.get_mode() == gtk.SELECTION_MULTIPLE:
-		(model, pathlist) = self.treeselection.get_selected_rows()
-		self.value=pathlist
-	        self.fireValueChanged()
-		return self.value
-
-	self.value=[]	
-	model, iter = self.treeselection.get_selected()
-	self.value.append(self.tstore.get_path(iter))
-	self.fireValueChanged()
-	return self.value
-
-    def setValue(self,value):
-	index=self.showitems.index(value)
-	self.treeselection.select_path(index)
+    def getSelection(self):
+        selection = self.treeview.get_selection()
+        if self.selectionmode == gtk.SELECTION_MULTIPLE:
+            model, pathlist = selection.get_selected_rows()
+            return [i[0] for i in pathlist]
+        model, itr = selection.get_selected()
+        return model.get_path(itr)[0]
 
     def show(self):
-	self.scrolledwindow.show()
-        self.treeview.show()
         gtk.VBox.show(self)
+        self.scrolledwindow.show()
+        self.treeview.show()
 
     def hide(self):
-	self.scrolledwindow.hide()
-        self.treeview.hide()
         gtk.VBox.hide(self)
+        self.scrolledwindow.hide()
+        self.treeview.hide()
         
     def set_sensitive(self, sensitive):
         self.sensitive = sensitive
         self.treeview.set_sensitive(self, sensitive)
 
 
-class TListPair(gtk.HBox,QuickWidget):
+class ListPair(gtk.HBox,QuickWidget):
     """
-    needs cleanup! naming conventions not followed..code is very dirty.
+    An interface for pairing between two lists.
     """
-    def __init__(self, quickid=None, description=None, value=None,validator=None,property1=None,property2=None, hideon=None):
+    def __init__(self, quickid=None, description=None, value=None,validator=None,list1=[],list2=[], name1=None, name2=None, hideon=None):
+        """
+        quickid = quickid
+        description = description
+        list1 = list of values from first list.
+        list2 = list of values from second list.
+        name1 = name of first list.
+        name2 = name of seconf list.
+        value = default values to be passed as 2D list.
+        """
 	
 	QuickWidget.__init__(self, quickid, description, value, validator, hideon=hideon)
 
-        self.value=[] 
-	self.property1=property1
-	self.property2=property2
+        self.value = value or [[item, None] for item in list1]
+	self.list1 = list1
+	self.list2 = list2
+        self.name1 = name1
+        self.name2 = name2 
 
 	gtk.HBox.__init__(self, False, 0)
-	self.type="TListPair"
+	self.type="ListPair"
 
-	self.listL = TreeList(quickid="TreeList",description=description,property=property1)
-	self.listR = TreeList(quickid="TreeList",description=description,property=property2)
+        self._createTables()
+
 	self.pack_start(self.listL,False,5)
 	self.pack_start(self.listR,False,5)
-
-	self._set_property()
-
 	self._create_entry()
-
 	self._create_button()
 
-	self._setDefault()	
+
+    def _createTables(self):
+	self.listL = Table(quickid="listL", description="", value=self.value, columnnames=[self.name1, self.name2], selection="multi")
+	self.listR = Table(quickid="listR", description="", value=self.list2, columnnames=[self.name2], selection="single")
+
 
     def _create_entry(self):
 	self.Lbox=gtk.HBox(False,0)
@@ -763,23 +772,12 @@ class TListPair(gtk.HBox,QuickWidget):
 	self.entry.connect("key-release-event",self._searchSelect,None)
 
     def resetSelected(self, button, data=None):
-	selectionL=self.listL._getValue(self.listL.treeview,self.property1[0])
-        model = self.listL.treeview.get_model()
-
+	selectionL=self.listL.getSelection()
+        value = self.getValue()
         for i in selectionL:
-            
-            iter = self.listL.tstore.get_iter(i[0])
-            v1 = model.get_value(iter,0)
-            v2 = model.get_value(iter,1)
-            try:
-                index = self.value.index((v2,v1))
-                self.value.remove((v2,v1))
-                self.value.insert(index, (None,v1))
-            except:
-                pass
-            self.listL.tstore.set_value(iter,1,None)
-
-
+            value[i][1] = None
+        self.value = value
+        self.listL.setValue(value)
         self.fireValueChanged()
 
     def _create_button(self):
@@ -790,78 +788,33 @@ class TListPair(gtk.HBox,QuickWidget):
 	self.Rbox.pack_end(self.button,False,15)
 	self.button.connect("clicked",self._onApply,None)
 
-    def _set_property(self):
-	self.listL.treeview.set_search_column(0)
-	self.listR.treeview.set_search_column(0)
-
-    def _setDefault(self):
-	Llist=self.property1[3]
-	Rlist=self.property1[6]
-	for i in range(len(Llist)):
-		self.value.append((Rlist[i],Llist[i]))
 	
     def _onApply(self,button,data=None):
 
-	self.selectionL=self.listL._getValue(self.listL.treeview,self.property1[0])
-	self.selectionR=self.listR._getValue(self.listR.treeview,self.property2[0])
-	self._setListValue()
-	self._getValue()
+	selectionL=self.listL.getSelection() # multiple selection
+	selectionR=self.listR.getSelection() # single selection
 
+        value= self.listL.getValue()
 
-    def _setListValue(self):
+	for i in selectionL:
+            value[i][1] = self.list2[selectionR]
 
-	for i in self.selectionL:
-		iter = self.listL.tstore.get_iter(i[0])
-
-		model = self.listR.treeview.get_model()
-		value=[]
-		for j in range(len(self.selectionR)):
-			riteR=self.listR.tstore.get_iter(self.selectionR[j][0])
-			value.append(model.get(riteR,0))
-
-		self.listL.tstore.set_value(iter,1,ListValue([j[0] for j in value]))
-
-
-    def _getValue(self):
-        
-	model = self.listL.treeview.get_model()
-	valueL=[]
-
-	for j in range(len(self.selectionL)):
-		Liter=self.listL.tstore.get_iter(self.selectionL[j][0])
-		valueL.append(model.get_value(Liter,0))
-
-	model = self.listR.treeview.get_model()
-	valueR=[]
-
-	for j in range(len(self.selectionR)):
-		Riter=self.listR.tstore.get_iter(self.selectionR[j][0])
-		valueR.append(model.get_value(Riter,0))
-
-	for j in valueR:
-		for i in valueL:
-			value=(j,i)
-			for k in self.value:
-				if i in k:
-					self.value.pop(self.value.index(k))
-			
-	   		self.value.append(value)
-
-	self.fireValueChanged()
+        self.listL.setValue(value)
+        self.value = value
+        self.fireValueChanged()
 
     def _searchSelect(self,entry,event, data=None):
 	entry_text=entry.get_text()
         if not entry_text: return
-	treeselection=self.listL.treeview.get_selection()
 	try:
-		p=re.compile(entry_text)
-                treeselection.unselect_all()
-		for i in range(len(self.property1[3])):
-			item = self.property1[3][i]
-			if re.match(p, item):
-				treeselection.select_path(i)
-	except:
-		pass
+            treeselection = self.listL.treeview.get_selection()
+            p=re.compile(entry_text)
+            treeselection.unselect_all()
+            for i in range(len(self.list1)):
+                if re.match(p, self.list1[i]):
+                    treeselection.select_path(i)
+        except:
+            pass
 
     def show(self):
 	self.entry.show()
@@ -891,90 +844,56 @@ class TListPair(gtk.HBox,QuickWidget):
 	self.listR.set_sensitive(self, sensitive)
 
 
-class pairingInterface(TListPair):
+class PairingInterface(ListPair):
     """
-    widget for pairing interfaces... inherits TListPair class
-    needs cleanup! naming conventions not followed..code is very dirty.
+    widget for pairing interfaces... inherits ListPair class
     """
 
-    def __init__(self, quickid=None, description=None, value=None,validator=None,property1=None,property2=None, hideon=None):
-	
+    def __init__(self, quickid=None, description=None, value=None,validator=None,options=None, hideon=None):
+        """
+        quickid = quickid
+        description = description
+        options = list of values to be paired among themselves.
+        value = default values to be passed as 2D list.
+        """
+
 	QuickWidget.__init__(self, quickid, description, value, validator, hideon=hideon)
+	ListPair.__init__(self, quickid=quickid, description=description, value=value, validator=validator, list1=options, list2=options, name1=description, name2=description, hideon=hideon)
+	self.type="PairingInterface"
+        self.options = options
 
-	self.type="pairingInterface"
+    def _createTables(self):
+	self.listL = Table(quickid="listL", description="", value=self.value, columnnames=[self.name1, "Paired With"], selection="multi")
+	self.listR = Table(quickid="listR", description="", value=self.list2, columnnames=[self.name2], selection="multi")
 
-	TListPair.__init__(self, quickid=quickid, description=description, value=value,validator=validator,property1=property1,property2=property2, hideon=hideon)
+    def _onApply(self, button, data=None):
 
-	self.value=[]
-
-
-    def _getValue(self):
-
-	model = self.listL.treeview.get_model()
-        itr = model.get_iter_first()
+        selectionL = self.listL.getSelection() #multiple selection
+        selectionR = self.listR.getSelection() #multiple selection
         
-        col1 = []
-        col2 = []
+        rvlist = []
+        for l in selectionL:
+            for r in selectionR:
+                v = []
+                if self.value[l][1]:
+                    v = [item for item in self.value[l][1]]
+                rv = self.options[r]
+                if rv not in v and rv!=self.options[l]:
+                    v.append(rv)
+                    rvlist.append((rv, self.options[l]))
+                self.value[l][1] = ListValue(v)
 
-        while itr:
-            col1.append(model.get(itr, 0)[0])
-            col2.append(model.get(itr, 1)[0])
-            itr = model.iter_next(itr)
-            
-        for i in range(len(col1)):
-            p = col1[i]
-            q = col2[i]
-            if q:
-                for q1 in q.split(","):
-                    if (q1, p) not in self.value and (p, q1) not in self.value:
-                        self.value.append((p, q1))
+        for r,l in rvlist:
+            index = self.options.index(r)
+            v = []
+            if self.value[index][1]:
+                v = [i for i in self.value[index][1]]
+            if l not in v:
+                v.append(l)
+            self.value[index][1] = ListValue(v)
 
-	self.fireValueChanged()
-
-
-    def _setListValue(self):
-
-	for i in self.selectionL:
-		iter = self.listL.tstore.get_iter(i[0])
-
-		model = self.listR.treeview.get_model()
-		value = self.listL.treeview.get_model().get(iter, 1)[0]
-                lvalue = self.listL.treeview.get_model().get(iter, 0)
- 
-                if value:
-                    value = value.split(",")
-                else:
-                    value = []
-
-		for j in range(len(self.selectionR)):
-			Riter=self.listR.tstore.get_iter(self.selectionR[j][0])
-                        v = model.get(Riter, 0)
-                     
-                        if v[0] not in value and v[0]!=lvalue[0]:
-                            value.append(v[0])
-
-		self.listL.tstore.set_value(iter,1,ListValue(value))
-
-	for i in self.selectionR:
-		iter = self.listL.tstore.get_iter(i[0])
-
-		model = self.listL.treeview.get_model()
-		value = self.listL.treeview.get_model().get(iter, 1)[0]
-                lvalue = self.listL.treeview.get_model().get(iter, 0)
-
-                if value:
-                    value = value.split(",")
-                else:
-                    value = []
-
-		for j in range(len(self.selectionL)):
-			Riter=self.listL.tstore.get_iter(self.selectionL[j][0])
-                        v = model.get(Riter, 0)
-
-                        if v[0] not in value and v[0]!=lvalue[0]:
-                            value.append(v[0])
-
-		self.listL.tstore.set_value(iter,1,ListValue(value))
+        self.listL.setValue(self.value)
+        self.fireValueChanged()
 	
 class Boolean(gtk.CheckButton, QuickWidget):
     """
@@ -1309,80 +1228,6 @@ class ScrolledWidget(QuickWidget, gtk.ScrolledWindow):
         gtk.ScrolledWindow.set_sensitive(self, sensitive)
         self.widget.set_sensitive(sensitive)
 
-
-class TreeTable(gtk.VBox, QuickWidget):    
-    """
-    Not in use. needs further work
-    """
-    def __init__(self, quickid=None, description=None, columnnames=[], value=[], validator=None, hideon=None, sortcolumn=0):
-        """
-        quickid = quick id of the widget.
-        description = description if any
-        columnnames = list of column names
-        value = list of rows. for example for value=[[1,'a'],[2,'b']], [1,'a'] is first row in the table
-        """
-
-        QuickWidget.__init__(self,quickid, description, value, validator, hideon=hideon)
-        self.type = "TreeTable"
-        gtk.VBox.__init__(self, True, 0)
-        self.columnnames = columnnames
-        self.columncount = len(columnnames)
-        self.sortcolumn = sortcolumn
-        self._setupWidgets()
-
-
-    def _setupWidgets(self):
-        self.scrolledwindow = gtk.ScrolledWindow()
-        self.model = gtk.ListStore(*[gobject.TYPE_STRING for i in range(self.columncount)])
-
-        for row in self.value:
-            self.model.append(row)
-            
-        self.treeview = gtk.TreeView(self.model)
-        
-        def createColumn(name):
-            return gtk.TreeViewColumn(name)
-            
-        self.treecolumns = [createColumn(name) for name in self.columnnames]
-        self.cells = [gtk.CellRendererText() for i in range(self.columncount) ]
-
-        for i in range(self.columncount):
-            c = self.treecolumns[i]
-            self.treeview.append_column(c)
-            c.add_attribute(self.cells[i], 'text', i)
-            c.pack_start(self.cells[i], True)
-            c.set_sort_column_id(self.sortcolumn)
-
-        self.treeview.set_reorderable(False)
-	self.treeview.set_rules_hint(True)
-        self.scrolledwindow.add(self.treeview)
-        self.pack_start(self.scrolledwindow, True, True, 0)
-
-
-    def setValue(self, value):
-        if self.validator:
-            self.validator(value)
-
-        self.model.clear()
-
-        for row in value:
-            self.model.append(row)
-
-        self.value = value
-        self.fireValueChanged()
-
-
-    def show(self):
-        gtk.VBox.show(self)
-        self.scrolledwindow.show()
-        self.treeview.show()
-
-    def hide(self):
-        gtk.VBox.hide(self)
-        self.scrolledwindow.hide()
-        self.treeview.hide()
-
-
 def createWidget(**args):
     """
     main method to create quick widgets quickly. As of now it supports following types of widgets
@@ -1636,7 +1481,9 @@ def testConfig():
 if __name__=="__main__":
     print __name__
 
-    c = createWidget(type="TreeTable", quickid='t', description="s",columnnames=['a','b','c'], value=[['a1','a2','a3'],['b1','b2','b3'],['c1','c2','c3']])
+    c = createWidget(type="Table", quickid='t', description="s",columnnames=['a','b','c'], value=[['a1','a2asdasdasd','r'],['b1','b2asdasdasd','q'],['c1','c2dasdasdsadasd','p']])
+    c = createWidget(type="ListPair", quickid="t", description="sd", list1=['a','b','c'], list2=['p','q','r'], name1="ABC", name2="PQR") 
+    c = createWidget(type="PairingInterface", quickid="t", description="Interfaces", options=['a','b','v']) 
     showDialog(c)
     dom
 
