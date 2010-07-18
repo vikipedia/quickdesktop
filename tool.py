@@ -1,14 +1,20 @@
-import pygtk, sys, gtk, unittest
+import pygtk
+import sys
+import gtk
+import unittest
+import os
+import stat
 pygtk.require("2.0")
 import quickdesktop
-from quickdesktop.plugin import PluginManager 
+from quickdesktop import plugin
 from quickdesktop import common 
 from quickdesktop import const
 from quickdesktop import resource
-
+from quickdesktop import templates
 
 def setIcon(window):
-    icon = resource.getResource("resource:logo.xpm")
+    toolconf = ToolConf()
+    icon = resource.getResource(toolconf.getIcon())
     if icon:
         window.set_icon_from_file(icon)
 
@@ -24,7 +30,9 @@ def quit_gtk(parent):
         gtk.main_quit()
 
 class ToolWindow(common.Singleton, gtk.Window):
-    
+    """
+    Main tool window
+    """
     def __init__(self):          
         if "toolconf" not in vars(self):
             gtk.Window.__init__(self,gtk.WINDOW_TOPLEVEL)
@@ -33,7 +41,6 @@ class ToolWindow(common.Singleton, gtk.Window):
             self.toolconf = ToolConf()
             self._setup()
             setIcon(self)
-        
 
     def _setup(self):
         self.connect("delete_event", self.delete_event)
@@ -41,7 +48,7 @@ class ToolWindow(common.Singleton, gtk.Window):
         from menus import MenuBar, Toolbar, createInstance
         self.menubar = createInstance(MenuBar,self.toolconf.getMenubar())
         self.toolbar = None
-
+        self.set_title(self.toolconf.getTitle())
         self.vbox = gtk.VBox(False, 1)#homogeneous=False, spacing=1
 
         #child=mb,expand=False,fill=True,padding=0
@@ -70,7 +77,7 @@ class ToolConf(common.Singleton):
 
     def __init__(self):
         
-        toolconf = PluginManager().getPlugin("toolconf")['ITEMS'][0]
+        toolconf = plugin.PluginManager().getPlugin("toolconf")['ITEMS'][0]
         if "menubar" not in vars(self):
             self.menubar = self.loadMenubar(toolconf['menubar'])
 
@@ -80,19 +87,21 @@ class ToolConf(common.Singleton):
             else:
                 self.toolbar = self.loadToolbar(toolconf['toolbar'])
 
+        self.title = toolconf['title']
+        self.icon = toolconf['icon']
         self.sidebars = toolconf['sidebars']
         
     def loadToolbar(self, toolbarid):
-        return PluginManager().getPlugin(toolbarid)
+        return plugin.PluginManager().getPlugin(toolbarid)
 
     def loadMenubar(self, menubarid):
-        menubar = PluginManager().getPlugin(menubarid)
+        menubar = plugin.PluginManager().getPlugin(menubarid)
         menubar['ITEMS'] = [self.getMenu(item) for item in menubar['ITEMS']]
         return menubar
 
     def getMenu(self, menu):
         if type(menu)==type(""):
-            return PluginManager().getPlugin(menu)
+            return plugin.PluginManager().getPlugin(menu)
         return menu
         
     def getSidebars(self):
@@ -103,6 +112,12 @@ class ToolConf(common.Singleton):
 
     def getToolbar(self):
         return self.toolbar
+
+    def getTitle(self):
+        return self.title
+
+    def getIcon(self):
+        return self.icon
 
 
 class TestToolWindow(unittest.TestCase):
@@ -120,11 +135,61 @@ def getToolWindow():
     print "ToolWindow : ", id(tw)
     return tw
 
+def writeFile(path, data):
+    f = open(path, "w")
+    f.write(data)
+    f.close()
+
+
+def writePlugins(path):
+    print "Creating plugins"
+    data = {}
+    data[os.path.join(path, "toolconf.plg")] = templates.toolconf
+    data[os.path.join(path, "toolbar.plg")] = templates.toolbar
+    data[os.path.join(path, "menubar.plg")] = templates.menubar
+    data[os.path.join(path, "FileMenu.plg")] = templates.filemenu
+    data[os.path.join(path, "HelpMenu.plg")] = templates.helpmenu
+    data[os.path.join(path, "SampleMenu.plg")] = templates.samplemenu
+    for k, v in data.items():
+        writeFile(k, v)
+
+def writeConfig(path):
+    print "Creating configurations"
+    data = {}
+    data[os.path.join(path, "sample.conf")] = templates.sampleconf
+    data[os.path.join(path, "sample1.conf")] = templates.sample1conf
+    for k,v in data.items():
+        writeFile(k, v)
+
+def writeResources(path):
+    print "Creating resources"
+    writeFile(os.path.join(path, "config.tree"), templates.conftree)
+    f = open(os.path.join(path, "qdesktop-logo.ppm"), "w")
+    for line in templates.logo:
+        f.write(str(line) + "\n")
+    f.close()
+
+def createTool(name):
+    cwd = os.getcwd()
+    toolfolder = os.path.join(cwd, name)
+    print "Creating folder structure"
+    os.mkdir(toolfolder)
+    plugins = os.path.join(toolfolder, "plugins")
+    config = os.path.join(toolfolder, "config")
+    resources = os.path.join(toolfolder, "resources")
+    map(os.mkdir, [plugins, config, resources])
+    writePlugins(plugins)
+    writeConfig(config)
+    writeResources(resources)
+    executable = os.path.join(toolfolder, name)
+    writeFile(executable, templates.mainscript%toolfolder)
+    perms = stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IROTH
+    os.chmod(executable, perms)
 
 print __name__
 if __name__ == "__main__":
     print sys.argv
-    const.home = "/home/vikrant/programming/work/rep/quickdesktop"
+    const.home = "/home/vikrant/programming/work/rep/sample"
     unittest.main()
 
 

@@ -1,0 +1,13 @@
+version 0.9
+
+1. Removed TreeList, TListPair, pairingInterface and replaced them with
+   	   Table,    ListPair, 	PairingInterface. Old classes did not have
+good interface. Made it simple.
+2. Added readme.txt
+3. Added support for titile and icon in toolconf. With this version make 
+sure that you have title and icon in Toolconf.plg. This will be set as title 
+to top level window. To see example look into sample tool. (can be crated by running command "qdesktop.py create sample"
+4. Added tools (qdesktop.py) for aumated desktop creation.
+
+
+

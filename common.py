@@ -34,6 +34,7 @@ class TestSingleton(unittest.TestCase):
 
         a1 = A(True)
         a2 = A(False)
+        self.assertEqual(a1, a2)
         self.assertEqual(a1.flag, a2.flag)
 
     def testSingleton3(self):
