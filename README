@@ -19,19 +19,11 @@ which makes the above mentioned process through human readable
 file format.
 
 To create a desktop application using quickdesktop you need
-to download quickdesktop library. Add it to PYTHONPATH. i.e.
-add line similar to this in your .bashrc file
+to download quickdesktop library. Unzip it and install it.
 
-$export PYTHONPATH=$PYTHONPATH:$HOME/programming/work/rep/
-
-here $HOME/programming/work/rep/ is the directory in which 
-source directory "quickdesktop" lies.
-
-
-also qdesktop.py file in system path.
-on linux you can do this by adding following line in .bashrc file
-
-$export $PATH=$PATH:$HOME/programming/work/rep/quickdesktop.
+tar -xvzf Quickdesktop-1.0.tar.gz
+cd Quickdesktop-1.0
+sudo python setup.py install
 
 Now you are ready to use quickdesktop library to create a 
 desktop tool.
