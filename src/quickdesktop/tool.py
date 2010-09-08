@@ -186,7 +186,7 @@ def createTool(name):
     perms = stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IROTH
     os.chmod(executable, perms)
 
-print __name__
+
 if __name__ == "__main__":
     print sys.argv
     const.home = "/home/vikrant/programming/work/rep/sample"

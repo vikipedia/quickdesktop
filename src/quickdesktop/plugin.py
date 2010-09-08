@@ -18,7 +18,6 @@ class PluginManager(DataManager):
     def getPlugin(self, id):
         return self.getData(id)
 
-print __name__
 if __name__=="__main__":
     const.home = "/home/vikrant/programming/work/rep/sample"
     pm = PluginManager()

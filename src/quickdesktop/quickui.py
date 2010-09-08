@@ -756,7 +756,7 @@ class ListPair(gtk.HBox,QuickWidget):
 
     def _createTables(self):
 	self.listL = Table(quickid="listL", description="", value=self.value, columnnames=[self.name1, self.name2], selection="multi")
-	self.listR = Table(quickid="listR", description="", value=self.list2, columnnames=[self.name2], selection="single")
+	self.listR = Table(quickid="listR", description="", value=[[v] for v in self.list2], columnnames=[self.name2], selection="single")
 
 
     def _create_entry(self):
@@ -864,7 +864,7 @@ class PairingInterface(ListPair):
 
     def _createTables(self):
 	self.listL = Table(quickid="listL", description="", value=self.value, columnnames=[self.name1, "Paired With"], selection="multi")
-	self.listR = Table(quickid="listR", description="", value=self.list2, columnnames=[self.name2], selection="multi")
+	self.listR = Table(quickid="listR", description="", value=[[v] for v in self.list2], columnnames=[self.name2], selection="multi")
 
     def _onApply(self, button, data=None):
 
@@ -1479,7 +1479,6 @@ def testConfig():
     showConfigurationTree(tree=t, savespace=const.home + "/test1")
 
 if __name__=="__main__":
-    print __name__
 
     c = createWidget(type="Table", quickid='t', description="s",columnnames=['a','b','c'], value=[['a1','a2asdasdasd','r'],['b1','b2asdasdasd','q'],['c1','c2dasdasdsadasd','p']])
     c = createWidget(type="ListPair", quickid="t", description="sd", list1=['a','b','c'], list2=['p','q','r'], name1="ABC", name2="PQR") 
