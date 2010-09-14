@@ -701,9 +701,10 @@ class Table(gtk.VBox, QuickWidget):
         selection = self.treeview.get_selection()
         if self.selectionmode == gtk.SELECTION_MULTIPLE:
             model, pathlist = selection.get_selected_rows()
-            return [i[0] for i in pathlist]
+            itr = [self.model.get_iter(i[0]) for i in pathlist]
+            return [self.model.get_value(i, 0) for i in itr]
         model, itr = selection.get_selected()
-        return model.get_path(itr)[0]
+        return model.get_value(itr,0)
 
     def show(self):
         gtk.VBox.show(self)
@@ -774,8 +775,9 @@ class ListPair(gtk.HBox,QuickWidget):
     def resetSelected(self, button, data=None):
 	selectionL=self.listL.getSelection()
         value = self.getValue()
+        firstcolumn = [v[0] for v in value]
         for i in selectionL:
-            value[i][1] = None
+            value[firstcolumn.index(i)][1] = None
         self.value = value
         self.listL.setValue(value)
         self.fireValueChanged()
@@ -793,11 +795,13 @@ class ListPair(gtk.HBox,QuickWidget):
 
 	selectionL=self.listL.getSelection() # multiple selection
 	selectionR=self.listR.getSelection() # single selection
-
-        value= self.listL.getValue()
-
+        
+        value = self.listL.getValue()
+        leftcolumn = [v[0] for v in value]
+        rightcolumn = [v[0] for v in self.listR.getValue()]
+        indexR = rightcolumn.index(selectionR) # find index of right selection
 	for i in selectionL:
-            value[i][1] = self.list2[selectionR]
+            value[leftcolumn.index(i)][1] = self.list2[indexR]
 
         self.listL.setValue(value)
         self.value = value
@@ -870,10 +874,13 @@ class PairingInterface(ListPair):
 
         selectionL = self.listL.getSelection() #multiple selection
         selectionR = self.listR.getSelection() #multiple selection
-        
+        leftcolumn = [v[0] for v in self.listL.getValue()]
+        rightcolumn = [v[0] for v in self.listR.getValue()] 
         rvlist = []
-        for l in selectionL:
-            for r in selectionR:
+        for litem in selectionL:
+            l = leftcolumn.index(litem)
+            for ritem in selectionR:
+                r = rightcolumn.index(ritem)
                 v = []
                 if self.value[l][1]:
                     v = [item for item in self.value[l][1]]
@@ -1481,9 +1488,10 @@ def testConfig():
 if __name__=="__main__":
 
     c = createWidget(type="Table", quickid='t', description="s",columnnames=['a','b','c'], value=[['a1','a2asdasdasd','r'],['b1','b2asdasdasd','q'],['c1','c2dasdasdsadasd','p']])
-    c = createWidget(type="ListPair", quickid="t", description="sd", list1=['a','b','c'], list2=['p','q','r'], name1="ABC", name2="PQR") 
-    c = createWidget(type="PairingInterface", quickid="t", description="Interfaces", options=['a','b','v']) 
+    c = createWidget(type="ListPair", quickid="t", description="sd", list1=['aSAS','basdas','csadasd','sdasdfyfusdy','iudkjfhsd'], list2=['pasdas','qasdas','rsdasd'], name1="ABC", name2="PQR") 
+    #c = createWidget(type="PairingInterface", quickid="t", description="Interfaces", options=['aasdasd','basdasd','vdasdfdsf']) 
     showDialog(c)
+    print c.getValue()
     dom
 
     #testConfig()
