@@ -862,6 +862,8 @@ class PairingInterface(ListPair):
         """
 
 	QuickWidget.__init__(self, quickid, description, value, validator, hideon=hideon)
+        if value:
+            self.value = [ListValue(r) for r in value]
 	ListPair.__init__(self, quickid=quickid, description=description, value=value, validator=validator, list1=options, list2=options, name1=description, name2=description, hideon=hideon)
 	self.type="PairingInterface"
         self.options = options
@@ -902,6 +904,21 @@ class PairingInterface(ListPair):
         self.listL.setValue(self.value)
         self.fireValueChanged()
 	
+    def getValue(self):
+        if self.validator:
+            self.validator(self.value)
+        x = []
+        for row in self.value:
+            r = []
+            for v in row:
+                if type(v)==type(ListValue([])):
+                    r = r + [i for i in v]
+                else:
+                    r.append(v)
+            
+            x.append(r)
+        return x
+
 class Boolean(gtk.CheckButton, QuickWidget):
     """
     Quickwidget for Boolean style values. Checkbox is used to represent boolean
@@ -1406,25 +1423,13 @@ for item in listenerObject.components.values():
             self.vbox.remove(item)
             del self.components[itemname]
 
-class ListValue:
+class ListValue(list):
 
    def __init__(self, iterable):
-	self.items = list(iterable)
-
-   def __getitem__(self, key):
-        return self.items[key]
-
-   def __setitem__(self, key, value):
-        self.items[key] = value
+	list.__init__(self, iterable)
             
    def __repr__(self):
-        return ",".join([str(i) for i in self.items])
-
-   def append(self, item):
-       self.items.append(item)
-
-   def __str(self):
-        return str(self.items)
+        return ",".join([str(i) for i in self])
 
 def createConfigWidget(confid, savespace):
     conf = configuration.getConfiguration(confid, savespace)

@@ -1,3 +1,8 @@
+version 1.1
+1. Bug fixes in PairingInterface.getValue. 
+2. Bug fixes in ListPair. Earlier version it used to work with only alphabets 
+and not with strings!
+
 version 0.9
 
 1. Removed TreeList, TListPair, pairingInterface and replaced them with

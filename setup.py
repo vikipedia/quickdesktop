@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='Quickdesktop',
-      version='1.0',
+      version='1.1',
       description='High level UI building libraries',
       author='Vikrant Patil',
       author_email='vikrant.patil@gmail.com',
