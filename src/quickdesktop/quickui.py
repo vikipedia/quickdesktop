@@ -868,6 +868,19 @@ class PairingInterface(ListPair):
 	self.type="PairingInterface"
         self.options = options
 
+    def resetSelected(self, button, data=None):
+        selectionL = self.listL.getSelection()
+        value = self.getValue()
+        firstcolumn = [v[0] for v in value]
+        for i in selectionL:
+            v = [item for item  in value[firstcolumn.index(i)][1]]
+            value[firstcolumn.index(i)][1] = None
+            for j in v:
+                value[firstcolumn.index(j)][1].remove(i)
+        self.value = value
+        self.listL.setValue(value)
+        self.fireValueChanged()
+
     def _createTables(self):
 	self.listL = Table(quickid="listL", description="", value=self.value, columnnames=[self.name1, "Paired With"], selection="multi")
 	self.listR = Table(quickid="listR", description="", value=[[v] for v in self.list2], columnnames=[self.name2], selection="multi")
@@ -903,21 +916,6 @@ class PairingInterface(ListPair):
 
         self.listL.setValue(self.value)
         self.fireValueChanged()
-	
-    def getValue(self):
-        if self.validator:
-            self.validator(self.value)
-        x = []
-        for row in self.value:
-            r = []
-            for v in row:
-                if type(v)==type(ListValue([])):
-                    r = r + [i for i in v]
-                else:
-                    r.append(v)
-            
-            x.append(r)
-        return x
 
 class Boolean(gtk.CheckButton, QuickWidget):
     """
