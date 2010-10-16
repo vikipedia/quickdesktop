@@ -35,6 +35,8 @@ c.configsavespace = "config-save"
 # loaded from this directory.
 c.plugins = "plugins"
 
+# directory where extra binaries will be saved
+c.bin = "bin"
 
 import sys
 sys.modules[__name__] = c

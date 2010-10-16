@@ -56,15 +56,55 @@ class ToolWindow(common.Singleton, gtk.Window):
         if self.toolconf.getToolbar():
             self.toolbar = createInstance(Toolbar,self.toolconf.getToolbar())
             self.vbox.pack_start(self.toolbar, False, True, 0)
+        
+        self.lefthpaned = gtk.HPaned()
+        self.righthpaned = None
+        self.addSideBars(self.toolconf.getSidebars())
 
-        self.hp = gtk.HPaned()
-        self.vbox.pack_start(self.hp,True,True,0)
+        self.desktoparea = gtk.VBox(True, 0)
+        if self.righthpaned:
+            self.righthpaned.add1(self.desktoparea)
+        else:
+            self.lefthpaned.add2(self.desktoparea)
+
+        self.vbox.pack_start(self.lefthpaned,True,True,0)
         self.add(self.vbox)
-    
+
+    def addSideBars(self, sbars):
+        self.sidebars = {}
+        for sidebar in sbars:
+            self.sidebars[sidebar] = self.createSidebar(sidebar)
+            
+
+    def createSidebar(self, sidebarid):
+        data = plugin.PluginManager().getPlugin(sidebarid)['ITEMS'][0]
+        code = """
+from %(module)s import %(class)s
+output['instance'] = %(class)s()"""
+        
+        output = {}
+        g = {'output':output}
+        eval(compile(code%data, "error.log", "exec"), g, g)
+
+        if data['location'] == "left":
+            self.lefthpaned.add1(output['instance'])
+        else:
+            if not self.righthpaned:
+                self.righthpaned = gtk.HPaned()
+                self.lefthpaned.add2(self.righthpaned)
+            self.righthpaned.add2(output['instance'])
+
+        return output['instance']
+
     def show(self):
         self.menubar.show()
         if self.toolbar: self.toolbar.show()
-        self.hp.show()
+        self.lefthpaned.show()
+        if self.righthpaned:
+            self.righthpaned.show()
+        for s in self.sidebars.keys():
+            self.sidebars[s].show()
+        self.desktoparea.show()
         self.vbox.show()
         gtk.Window.show(self)
         gtk.main()

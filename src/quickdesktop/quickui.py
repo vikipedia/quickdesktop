@@ -704,7 +704,7 @@ class Table(gtk.VBox, QuickWidget):
             itr = [self.model.get_iter(i[0]) for i in pathlist]
             return [self.model.get_value(i, 0) for i in itr]
         model, itr = selection.get_selected()
-        return model.get_value(itr,0)
+        return [model.get_value(itr,0)]
 
     def show(self):
         gtk.VBox.show(self)
@@ -725,7 +725,7 @@ class ListPair(gtk.HBox,QuickWidget):
     """
     An interface for pairing between two lists.
     """
-    def __init__(self, quickid=None, description=None, value=None,validator=None,list1=[],list2=[], name1=None, name2=None, hideon=None):
+    def __init__(self, quickid=None, description=None, value=None,validator=None,list1=[],list2=[], name1=None, name2=None, hideon=None, selection="single"):
         """
         quickid = quickid
         description = description
@@ -734,6 +734,7 @@ class ListPair(gtk.HBox,QuickWidget):
         name1 = name of first list.
         name2 = name of seconf list.
         value = default values to be passed as 2D list.
+        selection = "multi" or "single" , default is "single"
         """
 	
 	QuickWidget.__init__(self, quickid, description, value, validator, hideon=hideon)
@@ -743,6 +744,7 @@ class ListPair(gtk.HBox,QuickWidget):
 	self.list2 = list2
         self.name1 = name1
         self.name2 = name2 
+        self.selection = selection
 
 	gtk.HBox.__init__(self, False, 0)
 	self.type="ListPair"
@@ -757,7 +759,7 @@ class ListPair(gtk.HBox,QuickWidget):
 
     def _createTables(self):
 	self.listL = Table(quickid="listL", description="", value=self.value, columnnames=[self.name1, self.name2], selection="multi")
-	self.listR = Table(quickid="listR", description="", value=[[v] for v in self.list2], columnnames=[self.name2], selection="single")
+	self.listR = Table(quickid="listR", description="", value=[[v] for v in self.list2], columnnames=[self.name2], selection=self.selection)
 
 
     def _create_entry(self):
@@ -793,15 +795,16 @@ class ListPair(gtk.HBox,QuickWidget):
 	
     def _onApply(self,button,data=None):
 
-	selectionL=self.listL.getSelection() # multiple selection
-	selectionR=self.listR.getSelection() # single selection
+	selectionL=self.listL.getSelection() 
+	selectionR=self.listR.getSelection() 
         
         value = self.listL.getValue()
         leftcolumn = [v[0] for v in value]
         rightcolumn = [v[0] for v in self.listR.getValue()]
-        indexR = rightcolumn.index(selectionR) # find index of right selection
 	for i in selectionL:
-            value[leftcolumn.index(i)][1] = self.list2[indexR]
+            v = [self.list2[rightcolumn.index(j)] for j in selectionR]
+            value[leftcolumn.index(i)][1] = ListValue(v)
+            
 
         self.listL.setValue(value)
         self.value = value
