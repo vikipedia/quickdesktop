@@ -1,19 +1,13 @@
-from quickdesktop.common import Singleton, DataManager, DataParser
+from quickdesktop import common
 from quickdesktop import const
 import os
 
-class PluginManager(DataManager):
+class PluginManager(common.DataManager):
     """
     PluginManager manages plugins in system
     """
     def __init__(self):
-        DataManager.__init__(self, "plugins", ".plg")
-
-    def _loadData(self, plg):
-        print "*** Loading %s %s " % (self.datatype, plg)
-        filename = os.sep.join([self._getDataDir(),plg])
-        pdata = DataParser(filename).getData()
-        self.data[pdata['id']]  = pdata
+        common.DataManager.__init__(self, "plugins", ".plg")
 
     def getPlugin(self, id):
         return self.getData(id)

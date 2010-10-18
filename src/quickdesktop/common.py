@@ -81,7 +81,8 @@ class DataManager(Singleton):
     def _loadData(self, plg):
         print "*** Loading %s %s " % (self.datatype, plg)
         filename = os.sep.join([self._getDataDir(),plg])
-        self.data[plg.rstrip(self.extn)] = DataParser(filename).getData()
+        pdata = DataParser(filename).getData()
+        self.data[pdata['id']]  = pdata
 
     def _getDataDir(self):
         location = self.datatype

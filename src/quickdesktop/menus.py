@@ -26,8 +26,8 @@ def getEvents(plugindata):
         insensitiveon = [e for e in plugindata['insensitiveon'].split(",")]
     return sensitiveEvents,insensitiveon
 
-def createInstance(claz, plugindata):
-    instance = claz(plugindata)
+def createInstance(claz, plugindata, data={}):
+    instance = claz(plugindata, data=data)
     addEventsHandling(instance, plugindata)
     return instance
 
@@ -47,10 +47,11 @@ class Toolbar(gtk.Toolbar):
     def _getIconPath(self, resourceid):
         return resource.getResource(resourceid)
 
-    def __init__(self, toolbardata):
+    def __init__(self, toolbardata, data={}):
         items = toolbardata['ITEMS']
         gtk.Toolbar.__init__(self)
         self.buttons = []
+        self.data = data 
         self.items = items
         for item in items:
             icon = gtk.Image()
@@ -70,8 +71,9 @@ class Toolbar(gtk.Toolbar):
         self.set_sensitive(toolbardata['sensitive'])
 
     def execAction(self, widget, actioncode):
-        topwindow = self.get_parent_window()
-        eval(compile(actioncode, "error.log", "exec"), globals(), locals())
+        if 'topwindow' not in self.data:
+            self.data['topwindow'] = self.get_parent_window()
+        eval(compile(actioncode, "error.log", "exec"), globals(), self.data)
 
     def __getitem__(self, name):
         index = [i for i in range(len(self.items)) if self.items[i]['name']==name][0]
@@ -80,10 +82,11 @@ class Toolbar(gtk.Toolbar):
 
 class MenuBar(gtk.MenuBar):
     
-    def __init__(self, menubardata):
+    def __init__(self, menubardata, data={}):
         items = menubardata['ITEMS']
         gtk.MenuBar.__init__(self)
-        self.menus = [createInstance(Menu,item) for item in items]
+        self.data = data
+        self.menus = [createInstance(Menu,item, data=data) for item in items]
         map(self.append, self.menus)
         self.set_sensitive(menubardata['sensitive'])
         
@@ -98,12 +101,13 @@ class MenuBar(gtk.MenuBar):
 
 class Menu(gtk.MenuItem):
     
-    def __init__(self, plugindata):
+    def __init__(self, plugindata, data={}):
         name = plugindata['name']
         items = []
         if 'ITEMS' in plugindata: items = plugindata['ITEMS']
         gtk.MenuItem.__init__(self, name)
         self.items = items
+        self.data = data
 
         self.menu = gtk.Menu()
         self.label = gtk.Label(name)
@@ -114,7 +118,7 @@ class Menu(gtk.MenuItem):
 
     def _setup(self):
         items = self.items
-        self.mitems = [createInstance(Menu, item) for item in self.items]
+        self.mitems = [createInstance(Menu, item, data=self.data) for item in self.items]
         for i in range(len(items)):
             mitem = self.mitems[i]
             self.menu.append(mitem)
@@ -138,10 +142,11 @@ class Menu(gtk.MenuItem):
         return self.mitems[index]
     
     def execAction(self, widget, actioncode):
-        topwindow = self.get_parent_window()
-        multicaster = events.EventMulticaster()
+        if 'topwindow' not in self.data:
+            self.data['topwindow'] = self.get_parent_window ()
+        self.data['multicaster'] = events.EventMulticaster()
         """
         for line in actioncode.split("\n"):
             exec line"""
-        eval(compile(actioncode, "error.log", "exec"), globals(), locals())
+        eval(compile(actioncode, "error.log", "exec"), globals(), self.data)
 

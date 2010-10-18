@@ -19,10 +19,11 @@ def getParentWindow(widget):
     """
     return toplevel gtk.Dialog or gtk.Window for given widget
     """
-    t = type(widget)
-    if t in [gtk.Dialog, gtk.Window]:
-        return widget
-    return getParentWindow(widget.get_parent())
+    if widget:
+        t = type(widget)
+        if t in [gtk.Dialog, gtk.Window]:
+            return widget
+        return getParentWindow(widget.get_parent())
 
 
 def setIcon(window):
@@ -360,7 +361,7 @@ class String(gtk.HBox, QuickWidget):
     Widget for taking string inputs
     """
     
-    def __init__(self, quickid=None, description=None, value=None, maxlength=20, validator=lambda x:x, hideon=None, homogeneous=True):
+    def __init__(self, quickid=None, description=None, value=None, maxlength=200, validator=lambda x:x, hideon=None, homogeneous=True):
         QuickWidget.__init__(self,quickid, description, value, validator, hideon=hideon)
         gtk.HBox.__init__(self, homogeneous, 0)
         self.type = "String"
@@ -409,7 +410,10 @@ class String(gtk.HBox, QuickWidget):
         self.sensitive = sensitive
         self.entry.set_sensitive(sensitive)
         self.descriptionlabel.set_sensitive(sensitive)
-        
+      
+    def set_editable(self, editable):
+        self.entry.set_editable(editable)
+
     def setValue(self, value):
         """
         sets value in the entry and updates value.
@@ -718,7 +722,7 @@ class Table(gtk.VBox, QuickWidget):
         
     def set_sensitive(self, sensitive):
         self.sensitive = sensitive
-        self.treeview.set_sensitive(self, sensitive)
+        self.treeview.set_sensitive(sensitive)
 
 
 class ListPair(gtk.HBox,QuickWidget):
@@ -1270,6 +1274,21 @@ def createWidget(**args):
     return eval("%s(**args)"%(widgettype),globals(), locals())
 
 
+def createLayout(layout, widgets):
+    if layout:
+        nb = gtk.Notebook()
+        nb.set_tab_pos(gtk.POS_TOP)
+        for label in layout.keys():
+            l = gtk.Label(label)
+            wl = [widgets[i] for i in layout[label]]
+            c = createWidget(quickid=label, type="Group", components=wl)
+            c.show()
+            l.show()
+            nb.append_page(c, l)
+        return createWidget(quickid="layout", type="Custom", component=nb)
+    else:
+        return createWidget(quickid="layout", type="Group", components=widgets.values())
+
 class ConfigTree(gtk.HPaned):
     
     def __init__(self, tree, title, savespace=None):
@@ -1494,7 +1513,7 @@ def testConfig():
 if __name__=="__main__":
 
     c = createWidget(type="Table", quickid='t', description="s",columnnames=['a','b','c'], value=[['a1','a2asdasdasd','r'],['b1','b2asdasdasd','q'],['c1','c2dasdasdsadasd','p']])
-    c = createWidget(type="ListPair", quickid="t", description="sd", list1=['aSAS','basdas','csadasd','sdasdfyfusdy','iudkjfhsd'], list2=['pasdas','qasdas','rsdasd'], name1="ABC", name2="PQR") 
+    #c = createWidget(type="ListPair", quickid="t", description="sd", list1=['aSAS','basdas','csadasd','sdasdfyfusdy','iudkjfhsd'], list2=['pasdas','qasdas','rsdasd'], name1="ABC", name2="PQR") 
     #c = createWidget(type="PairingInterface", quickid="t", description="Interfaces", options=['aasdasd','basdasd','vdasdfdsf']) 
     showDialog(c)
     print c.getValue()
