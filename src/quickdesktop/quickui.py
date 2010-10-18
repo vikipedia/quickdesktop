@@ -807,7 +807,7 @@ class ListPair(gtk.HBox,QuickWidget):
         rightcolumn = [v[0] for v in self.listR.getValue()]
 	for i in selectionL:
             v = [self.list2[rightcolumn.index(j)] for j in selectionR]
-            value[leftcolumn.index(i)][1] = ListValue(v)
+            value[leftcolumn.index(i)][1] = common.ListValue(v)
             
 
         self.listL.setValue(value)
@@ -870,7 +870,7 @@ class PairingInterface(ListPair):
 
 	QuickWidget.__init__(self, quickid, description, value, validator, hideon=hideon)
         if value:
-            self.value = [ListValue(r) for r in value]
+            self.value = [common.ListValue(r) for r in value]
 	ListPair.__init__(self, quickid=quickid, description=description, value=value, validator=validator, list1=options, list2=options, name1=description, name2=description, hideon=hideon)
 	self.type="PairingInterface"
         self.options = options
@@ -910,7 +910,7 @@ class PairingInterface(ListPair):
                 if rv not in v and rv!=self.options[l]:
                     v.append(rv)
                     rvlist.append((rv, self.options[l]))
-                self.value[l][1] = ListValue(v)
+                self.value[l][1] = common.ListValue(v)
 
         for r,l in rvlist:
             index = self.options.index(r)
@@ -919,7 +919,7 @@ class PairingInterface(ListPair):
                 v = [i for i in self.value[index][1]]
             if l not in v:
                 v.append(l)
-            self.value[index][1] = ListValue(v)
+            self.value[index][1] = common.ListValue(v)
 
         self.listL.setValue(self.value)
         self.fireValueChanged()
@@ -1443,13 +1443,6 @@ for item in listenerObject.components.values():
             self.vbox.remove(item)
             del self.components[itemname]
 
-class ListValue(list):
-
-   def __init__(self, iterable):
-	list.__init__(self, iterable)
-            
-   def __repr__(self):
-        return ",".join([str(i) for i in self])
 
 def createConfigWidget(confid, savespace):
     conf = configuration.getConfiguration(confid, savespace)

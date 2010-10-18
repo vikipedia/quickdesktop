@@ -2,6 +2,7 @@ version 1.1.1
 1. bug fixes in PairingInterface and ListPair
 2. Added optional multiple selection on right hand side in ListPair
 3. added support for sidebars
+4. added layout creation function with tab support for quickui layout
 version 1.1
 1. Bug fixes in PairingInterface.getValue. 
 2. Bug fixes in ListPair. Earlier version it used to work with only alphabets 

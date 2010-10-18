@@ -14,6 +14,14 @@ class Singleton(object):
         if '_instsingle' not in vars(cls):
             cls._instsingle = super(Singleton,cls).__new__(cls)
         return cls._instsingle
+
+class ListValue(list):
+
+   def __init__(self, iterable):
+	list.__init__(self, iterable)
+            
+   def __repr__(self):
+        return ",".join([str(i) for i in self])
         
 class TestSingleton(unittest.TestCase):
     
