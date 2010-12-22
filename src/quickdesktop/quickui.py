@@ -202,6 +202,7 @@ listenerObject.task.cleanup()
 
     task.start()
     dialog.run()
+    return task.status == task.DONE
     
 
 class ProgressBar(QuickWidget, gtk.HBox):
