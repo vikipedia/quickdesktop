@@ -1,6 +1,5 @@
 import pygtk
 import sys
-import gtk
 import threading
 import gobject
 import time
@@ -14,6 +13,7 @@ from quickdesktop import const
 from quickdesktop import resource
 
 pygtk.require("2.0")
+import gtk
 
 def getParentWindow(widget):
     """
@@ -1508,10 +1508,8 @@ if __name__=="__main__":
     c = createWidget(type="Table", quickid='t', description="s",columnnames=['a','b','c'], value=[['a1','a2asdasdasd','r'],['b1','b2asdasdasd','q'],['c1','c2dasdasdsadasd','p']])
     #c = createWidget(type="ListPair", quickid="t", description="sd", list1=['aSAS','basdas','csadasd','sdasdfyfusdy','iudkjfhsd'], list2=['pasdas','qasdas','rsdasd'], name1="ABC", name2="PQR") 
     #c = createWidget(type="PairingInterface", quickid="t", description="Interfaces", options=['aasdasd','basdasd','vdasdfdsf']) 
-    showDialog(c)
-    print c.getValue()
+    print showDialog(c)
     dom
-
     #testConfig()
     #dom
     #Sample code starts here

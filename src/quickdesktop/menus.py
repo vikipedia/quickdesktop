@@ -1,11 +1,11 @@
 import pygtk
 import sys
-import gtk
 import unittest
 from quickdesktop import resource
 from quickdesktop import events
 from quickdesktop import common
 pygtk.require("2.0")
+import gtk
 
 def createEventFunction(eventType,sensitive):
     CODE = """

@@ -1,11 +1,11 @@
 import pygtk
 import sys
-import gtk
 import os
 import gobject
 from quickdesktop import const
 from quickdesktop import quickui
 pygtk.require("2.0")
+import gtk
 
 class _WizardProgress(gtk.HBox):
     

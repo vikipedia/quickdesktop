@@ -2,10 +2,7 @@ from quickdesktop import const
 from quickdesktop import common
 
 import os
-import gtk
-import pygtk
 import unittest
-pygtk.require("2.0")
 
 
 class ConfigurationManager:

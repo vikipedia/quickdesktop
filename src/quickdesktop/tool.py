@@ -1,10 +1,10 @@
 import pygtk
 import sys
-import gtk
 import unittest
 import os
 import stat
 pygtk.require("2.0")
+import gtk
 import quickdesktop
 from quickdesktop import plugin
 from quickdesktop import common 
