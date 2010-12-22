@@ -936,12 +936,13 @@ class Boolean(gtk.CheckButton, QuickWidget):
     values.
     """
 
-    def __init__(self, quickid=None, description=None, value=None,validator=None, hideon=None):
+    def __init__(self, quickid=None, description=None, value=None,validator=None, hideon=None, sensitive=True):
         QuickWidget.__init__(self, quickid, description, value, validator,hideon=hideon)
         gtk.CheckButton.__init__(self, description or quickid)
         self.type = "Boolean"
         self.connect("toggled",self._valueChanged)
         self.set_active(value)
+        self.set_sensitive(sensitive)
 
     def _valueChanged(self,widget):
         if self.validator:
@@ -958,7 +959,7 @@ class Boolean(gtk.CheckButton, QuickWidget):
             self.setValue(value)
         QuickWidget.__setitem__(self, name, value)
 
-    def set_sensitive(self):
+    def set_sensitive(self, sensitive):
         self.sensitive = sensitive
         gtk.CheckButton.set_sensitive(self, sensitive)
         
@@ -1159,7 +1160,7 @@ class Group(gtk.VBox, QuickWidget):
         """
         self.value = {}
         for c in self.components :
-            if c.sensitive: self.value[c['quickid']] = c['value']
+            self.value[c['quickid']] = c['value']
         return self.value
 
     def show(self):
@@ -1517,8 +1518,8 @@ if __name__=="__main__":
     c = createWidget(type="Table", quickid='t', description="s",columnnames=['a','b','c'], value=[['a1','a2asdasdasd','r'],['b1','b2asdasdasd','q'],['c1','c2dasdasdsadasd','p']])
     #c = createWidget(type="ListPair", quickid="t", description="sd", list1=['aSAS','basdas','csadasd','sdasdfyfusdy','iudkjfhsd'], list2=['pasdas','qasdas','rsdasd'], name1="ABC", name2="PQR") 
     #c = createWidget(type="PairingInterface", quickid="t", description="Interfaces", options=['aasdasd','basdasd','vdasdfdsf']) 
-    print showDialog(c)
-    dom
+    #print showDialog(c)
+    #dom
     #testConfig()
     #dom
     #Sample code starts here
@@ -1536,7 +1537,7 @@ if __name__=="__main__":
     s2 = createWidget(type="Integer",quickid="by",description="Yet another integer with too long description",value=5, maxvalue=10)
     s5 = createWidget(type="Enum",quickid="bz",options={'a':"Asdsfdfdsfdsfdsfdsfds",'b':"B",'c':"C"}, value="c")
     s5.setValue("b")
-    s6 = createWidget(type="Boolean",quickid="bp",description="Select this", value=True)
+    s6 = createWidget(type="Boolean",quickid="bp",description="Select this", value=True,sensitive=False)
     s7 = createWidget(type="QFileChooser",quickid="file",description="Choose file", value="/home/vikrant/examples.desktop", hideon="bp==False")
 
     task = Task("test", testProgress, start=0,end=5)
