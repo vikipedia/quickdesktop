@@ -43,8 +43,12 @@ class ProjectManager(common.Singleton):
             eventdata['origin'] = self
             eventdata['project'] = p
             events.EventMulticaster().dispatchEvent(PROJECT_CLOSED, eventdata)
-        if p == self.activeproject and self.projects:
-            self.setActiveProject(self.projects[0])
+        if p == self.activeproject:
+            if self.projects:
+                self.setActiveProject(self.projects[0])
+            else:
+                self.activeproject = None
+        
 
     def setActiveProject(self, p):
         if p in self.projects and p!= self.activeproject :
