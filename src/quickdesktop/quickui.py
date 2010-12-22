@@ -1036,7 +1036,10 @@ class QFileChooser(String):
 
         if self.value:
             import os
-            self.currentfolder = os.path.dirname(self.value)
+            if os.path.exists(self.value) and os.path.isdir(self.value):
+                self.currentfolder = self.value
+            else:
+                self.currentfolder = os.path.dirname(self.value)
             self.filechooser.set_current_folder(self.currentfolder)
             if action in [gtk.FILE_CHOOSER_ACTION_CREATE_FOLDER,gtk.FILE_CHOOSER_ACTION_SAVE]:
                 self.filechooser.set_current_name(os.path.basename(self.value))
