@@ -297,13 +297,18 @@ class Task(threading.Thread):
     def run(self):
         print "running in new thread",self.function
         self.status = self.RUNNING
-        self.function(task=self, **self.kwargs)
-        print "finished execution"
-        if self.status!=self.ABORTED:
-            self.status = self.DONE
-            events.EventMulticaster().dispatchEvent(self.DONE_EVENT, 
-                                                    {'type':self.DONE_EVENT,
-                                                     'origin':self})
+        try:
+            self.function(task=self, **self.kwargs)
+        except:
+            print "Error in executing function"
+        finally:
+            print "finished execution"
+            time.sleep(2)
+            if self.status!=self.ABORTED:
+                self.status = self.DONE
+                events.EventMulticaster().dispatchEvent(self.DONE_EVENT, 
+                                                        {'type':self.DONE_EVENT,
+                                                         'origin':self})
     def isRunning(self):
         return self.status == self.RUNNING
 

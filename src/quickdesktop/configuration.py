@@ -11,7 +11,7 @@ class ConfigurationManager:
         if savespace:
             self.savespace = savespace
         else:
-            self.savespace = const.configsavespace
+            self.savespace = os.path.join(const.home, const.configsavespace)
 
     def getFileName(self, confid):
         return confid + ".conf"
@@ -34,6 +34,7 @@ class ConfigurationManager:
     def getConfiguration(self, confid):
         path = self._getConfFilePath(confid)
         path2 = self._getSavedFilePath(confid)
+
         if os.path.exists(path2):
             path = path2
 
