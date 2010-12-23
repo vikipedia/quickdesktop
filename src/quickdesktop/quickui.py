@@ -1367,8 +1367,9 @@ for item in listenerObject.components.values():
         self.clearcomponents()
         self._createConfigUI()
         item = self.getSelectedItem()
-        self.components[item].show()
-        self.fireValueChanged()
+        if item in self.components:
+            self.components[item].show()
+            self.fireValueChanged()
 
 
     def _setupTree(self):
@@ -1442,7 +1443,7 @@ for item in listenerObject.components.values():
             
     def reloadSelected(self):
         item = self.getSelectedItem()
-        if item:
+        if item and item in self.components:
             self.confmanager.discard(item)
             self.vbox.remove(self.components[item])
             self.components[item] =  createConfigWidget(item, savespace=self.confmanager.savespace)
