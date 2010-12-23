@@ -1469,10 +1469,11 @@ def createConfigWidget(confid, savespace):
     
 def showConfigurationTree(title="Configuration Tree",parent=None, tree=None, savespace=None, button=(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)):
     ct = ConfigTree(tree, title, savespace=savespace)
-    buttons = (button[0], button[1],
-               gtk.STOCK_APPLY, gtk.RESPONSE_APPLY,
-               "Default-All", gtk.RESPONSE_NONE,
-               "Default", gtk.RESPONSE_REJECT)
+    buttons = ("Default-All", gtk.RESPONSE_NONE,
+               "Default", gtk.RESPONSE_REJECT,
+               button[0], button[1],
+               gtk.STOCK_APPLY, gtk.RESPONSE_APPLY)
+
     dialog = gtk.Dialog(title=title, parent=parent, flags=False, buttons=buttons)
     dialog.set_size_request(700,500)
     ct.set_position(250)
