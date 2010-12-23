@@ -1,3 +1,5 @@
+version 1.1.2
+1. fixes in progressbar
 version 1.1.1
 1. bug fixes in PairingInterface and ListPair
 2. Added optional multiple selection on right hand side in ListPair

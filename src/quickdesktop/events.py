@@ -39,6 +39,7 @@ class EventMulticaster(Singleton):
         """
         calls callback on all the listeners of event type "eventType"
         """
+
         if eventType in self.listeners:
             l = self.listeners[eventType]
             for listener in l:
