@@ -380,7 +380,7 @@ class String(gtk.HBox, QuickWidget):
         
         events  = ['key-release-event']
         for e in events:
-            self.entry.connect(e,self._valueChanged, e)
+            self.entry.connect(e,self._key_release_callback, e)
         self._setupComponents()
 
     def setSize(self, x,y):
@@ -390,6 +390,13 @@ class String(gtk.HBox, QuickWidget):
         self.pack_start(self.descriptionlabel,True,True,0)
         self.pack_start(self.entry, False, False, 0)
                 
+    def _key_release_callback(self, entry, event, data):
+        try:
+            self._valueChanged(entry, event, data)
+        except Exception, e:
+            error(message=e.message)
+            raise e
+
     def _valueChanged(self, entry, event,data):
         if self.validator:
             self.validator(entry.get_text())
