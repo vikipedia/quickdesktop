@@ -783,6 +783,9 @@ class ListPair(gtk.HBox,QuickWidget):
 	self.Lbox=gtk.HBox(False,0)
 	self.listL.pack_start(self.Lbox,False,15)
 
+        self.label = _Label('Search ')
+	self.Lbox.pack_start(self.label,False,5)
+	
 	self.entry=gtk.Entry()
 	self.Lbox.pack_start(self.entry,False,15)
 
@@ -841,6 +844,7 @@ class ListPair(gtk.HBox,QuickWidget):
             pass
 
     def show(self):
+	self.label.show()
 	self.entry.show()
 	self.button.show()
 	self.Lbox.show()
