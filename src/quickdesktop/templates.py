@@ -273,11 +273,13 @@ mainscript = """#!/usr/bin/python
 
 from quickdesktop import tool 
 from quickdesktop import const
+import sys
 import gtk
+
 gtk.gdk.threads_init()
 
 if __name__=="__main__":
-    const.home = "%s"
+    const.home = sys.path[0]
     tw = tool.ToolWindow()
     tw.show()
     gtk.gdk.threads_enter()

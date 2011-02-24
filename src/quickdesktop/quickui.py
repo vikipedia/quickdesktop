@@ -196,9 +196,14 @@ def runWithProgressDialog(parent,title,function,pulse=False,**kwargs):
             self.dialog = dialog
             self.task = task
 
+        def destroy(self):
+            def f():
+                self.dialog.destroy()
+                self.task.cleanup()
+            execute_in_ui_thread(f)
+
     code = """
-listenerObject.dialog.destroy()
-listenerObject.task.cleanup()
+listenerObject.destroy()
 """
     l = DoneListener(dialog, task)
     events.addEventListener(task.DONE_EVENT, l, code, {'e':events.EventMulticaster()})
