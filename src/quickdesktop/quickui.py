@@ -108,6 +108,16 @@ def question(parent=None, message=None):
     d.destroy()
     return response
 
+
+def execute_in_ui_thread(func, *args):
+    def f():
+        gtk.gdk.threads_enter()
+        func(*args)
+        gtk.gdk.threads_leave()
+
+    gobject.idle_add(f)
+
+
 class QuickWidget(gtk.Widget):    
     """
     interface for quickui library
@@ -271,12 +281,12 @@ listenerObject.task.cleanup()
     def set_fraction(self, fraction):
         def _set_fraction(fraction):
             self.progressbar.set_fraction(fraction)
-        gobject.idle_add(_set_fraction, fraction)
+        execute_in_ui_thread(_set_fraction, fraction)
         
     def set_text(self, message):
         def _set_text(message):
             self.progressbar.set_text(message)
-        gobject.idle_add(_set_text,message)
+        execute_in_ui_thread(_set_text, message)
 
 class Task(threading.Thread):
     
@@ -304,7 +314,7 @@ class Task(threading.Thread):
             print "Error in executing function"
 
         print "finished execution"
-        time.sleep(2)
+        time.sleep(0.1)
         if self.status!=self.ABORTED:
             self.status = self.DONE
             events.EventMulticaster().dispatchEvent(self.DONE_EVENT, 
@@ -1000,7 +1010,7 @@ class QFileChooser(String):
         self.multi = multi
         self.selectbutton = gtk.Button("Browse...")
         self.selectbutton.connect("clicked",self.showDialog,filefilter,self.ACTIONS[action],self.multi)
-        String.__init__(self, quickid, description, value, 200, validator, hideon=hideon)
+        String.__init__(self, quickid, description, value, 6000, validator, hideon=hideon)
         self.type = "QFileChooser"
 
     def _setupComponents(self):
@@ -1036,7 +1046,7 @@ class QFileChooser(String):
         [f.add_pattern(p) for p in filefilter[1:]]
         return f
 
-    def _createFileChooser(self,filefilter, action):
+    def _createFileChooser(self,filefilter, action, multi):
         filefilter = self._getFileFilter(filefilter)
         parent = getParentWindow(self)
         self.filechooser = gtk.FileChooserDialog(title ="Open...",
@@ -1046,6 +1056,7 @@ class QFileChooser(String):
         setIcon(self.filechooser)
         self.filechooser.set_default_response(gtk.RESPONSE_OK)
         self.filechooser.add_filter(filefilter)
+        self.filechooser.set_select_multiple(multi)
 
         if self.value:
             import os
@@ -1061,10 +1072,13 @@ class QFileChooser(String):
         """
         Shows file chooser dialog.
         """
-        self._createFileChooser(filefilter , action)
+        self._createFileChooser(filefilter , action, multi)
         response = self.filechooser.run()
         if response == gtk.RESPONSE_OK:
-            v = self.filechooser.get_filename()
+            if multi:
+                v = ",".join(self.filechooser.get_filenames())
+            else:
+                v = self.filechooser.get_filename()
             self.setValue(v)
         self.filechooser.destroy()
 
@@ -1508,7 +1522,7 @@ def testProgress(start=0, end=10, task=None):
     i = start
     task.set_text("Calculating...")
     while task.isRunning() and i < (end-start):
-        [j*j for j in range(500000)]
+        [j*j for j in range(50000)]
         f = 1.0*(i+1)/(end-start)
         task.set_fraction(f)
         task.set_text("Done " + str(f*100) + "%")
@@ -1528,7 +1542,7 @@ def testConfig():
 
 if __name__=="__main__":
 
-    c = createWidget(type="Table", quickid='t', description="s",columnnames=['a','b','c'], value=[['a1','a2asdasdasd','r'],['b1','b2asdasdasd','q'],['c1','c2dasdasdsadasd','p']])
+    #c = createWidget(type="Table", quickid='t', description="s",columnnames=['a','b','c'], value=[['a1','a2asdasdasd','r'],['b1','b2asdasdasd','q'],['c1','c2dasdasdsadasd','p']])
     #c = createWidget(type="ListPair", quickid="t", description="sd", list1=['aSAS','basdas','csadasd','sdasdfyfusdy','iudkjfhsd'], list2=['pasdas','qasdas','rsdasd'], name1="ABC", name2="PQR") 
     #c = createWidget(type="PairingInterface", quickid="t", description="Interfaces", options=['aasdasd','basdasd','vdasdfdsf']) 
     #print showDialog(c)
@@ -1536,7 +1550,9 @@ if __name__=="__main__":
     #testConfig()
     #dom
     #Sample code starts here
-    #runWithProgressDialog(None, "Test", testProgress,pulse=False,start=0, end=1000)
+    gtk.gdk.threads_init()
+    runWithProgressDialog(None, "Test", testProgress,pulse=False,start=0, end=1000)
+    dom
     s0 = createWidget(type="Matrix", quickid="m", description="Matrix", value=[[1.0,2.0],[3.0,4.0]], options=[['abcsdasas asa','b'],['','dasasas as->']])
 
     s1 = createWidget(type="String", quickid="name",description="",value="testxxx", maxlength=10)
@@ -1551,7 +1567,7 @@ if __name__=="__main__":
     s5 = createWidget(type="Enum",quickid="bz",options={'a':"Asdsfdfdsfdsfdsfdsfds",'b':"B",'c':"C"}, value="c")
     s5.setValue("b")
     s6 = createWidget(type="Boolean",quickid="bp",description="Select this", value=True,sensitive=False)
-    s7 = createWidget(type="QFileChooser",quickid="file",description="Choose file", value="/home/vikrant/examples.desktop", hideon="bp==False")
+    s7 = createWidget(type="QFileChooser",quickid="file",description="Choose file", value="/home/vikrant/examples.desktop", hideon="bp==False", multi=True)
 
     task = Task("test", testProgress, start=0,end=5)
     s8 = createWidget(type="ProgressBar", quickid="progress", description="",task=task)

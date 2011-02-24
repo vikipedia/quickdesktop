@@ -15,6 +15,7 @@ class Singleton(object):
             cls._instsingle = super(Singleton,cls).__new__(cls)
         return cls._instsingle
 
+
 class ListValue(list):
 
    def __init__(self, iterable):

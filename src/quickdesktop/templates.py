@@ -118,7 +118,8 @@ action
 {{{
 from quickdesktop import wizard
 from quickdesktop import samplewizard
-wizard.runWizard(samplewizard)
+from quickdesktop import tool
+wizard.runWizard(samplewizard, parent=tool.getToolWindow())
 }}}
 
 name		_Configuration
@@ -162,8 +163,7 @@ sensitiveon	SOME_EVENT2
 sensitive	True
 action
 {{{
-from quickdesktop.events import EventMulticaster
-EventMulticaster().dispatchEvent("SOME_EVENT1",{'origin':self})
+multicaster.dispatchEvent("SOME_EVENT1",{'origin':"Open_Button"})
 print "Open"
 }}}
 
@@ -176,7 +176,7 @@ sensitiveon	SOME_EVENT1
 sensitive	False
 action
 {{{
-print "Save"
+multicaster.dispatchEvent("SOME_EVENT2",{'origin':"Save_Button"})
 }}}
 
 """
@@ -273,11 +273,16 @@ mainscript = """#!/usr/bin/python
 
 from quickdesktop import tool 
 from quickdesktop import const
+import gtk
+gtk.gdk.threads_init()
 
 if __name__=="__main__":
     const.home = "%s"
     tw = tool.ToolWindow()
     tw.show()
+    gtk.gdk.threads_enter()
+    gtk.main()
+    gtk.gdk.threads_leave()    
 """
 
 # too many lines ahead .. do not try to scroll down below this!

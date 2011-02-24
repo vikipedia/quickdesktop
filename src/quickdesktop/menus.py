@@ -6,6 +6,7 @@ from quickdesktop import events
 from quickdesktop import common
 pygtk.require("2.0")
 import gtk
+import os
 
 def createEventFunction(eventType,sensitive):
     CODE = """
@@ -55,8 +56,11 @@ class Toolbar(gtk.Toolbar):
         self.items = items
         for item in items:
             icon = gtk.Image()
-
-            icon.set_from_file(self._getIconPath(item['icon']))
+            path = self._getIconPath(item['icon'])
+            if path:
+                icon.set_from_file(path)
+            else:
+                icon.set_from_stock(item['icon'],2)
             self.buttons.append(self.append_item(item['name'],
                                                  item['tooltip'], 
                                                  "Private",
@@ -73,6 +77,7 @@ class Toolbar(gtk.Toolbar):
     def execAction(self, widget, actioncode):
         if 'topwindow' not in self.data:
             self.data['topwindow'] = self.get_parent_window()
+        self.data['multicaster'] = events.EventMulticaster()
         eval(compile(actioncode, "error.log", "exec"), globals(), self.data)
 
     def __getitem__(self, name):

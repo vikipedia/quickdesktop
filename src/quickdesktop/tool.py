@@ -107,7 +107,6 @@ output['instance'] = %(class)s()"""
         self.desktoparea.show()
         self.vbox.show()
         gtk.Window.show(self)
-        gtk.main()
 
     def delete_event(self, widget, event):
         print "delete_event", widget, event
@@ -172,7 +171,6 @@ class TestToolWindow(unittest.TestCase):
 
 def getToolWindow():
     tw = ToolWindow()
-    print "ToolWindow : ", id(tw)
     return tw
 
 def writeFile(path, data):
