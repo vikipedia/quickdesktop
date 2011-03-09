@@ -413,8 +413,6 @@ class String(gtk.HBox, QuickWidget):
             raise e
 
     def _valueChanged(self, entry, event,data):
-        if self.validator:
-            self.validator(entry.get_text())
         self.value = entry.get_text()
         self.fireValueChanged()
 
@@ -479,8 +477,6 @@ class Integer(String):
         
     def _valueChanged(self, entry,event, data):
         value = int(self.entry.get_text())
-        if self.validator:
-            self.validator(value)
         self.value = value
         self.fireValueChanged()
 
@@ -497,11 +493,16 @@ class Float(Integer):
         Integer.__init__(self, quickid, description, value, validator, maxvalue, minvalue, hideon=hideon, homogeneous=homogeneous)
         self.type = "Float"
         self.value = float(value)
+        f = "\d+\.?\d*"
+        self.fp = re.compile("(\d+\.?\d*)[eE]?(\d)?$")
 
     def _valueChanged(self,entry,event,data):
-        value = float(self.entry.get_text())
-        if self.validator:
-            self.validator(value)
+        s = self.entry.get_text().strip()
+        m = self.fp.match(s) 
+        if m and (not m.groups()[1]):
+            value = float(m.groups()[0])
+        else:
+            value = float(self.entry.get_text())
         self.value = value
         self.fireValueChanged()
 
@@ -1556,8 +1557,8 @@ if __name__=="__main__":
     #dom
     #Sample code starts here
     gtk.gdk.threads_init()
-    runWithProgressDialog(None, "Test", testProgress,pulse=False,start=0, end=1000)
-    dom
+    #runWithProgressDialog(None, "Test", testProgress,pulse=False,start=0, end=1000)
+    #dom
     s0 = createWidget(type="Matrix", quickid="m", description="Matrix", value=[[1.0,2.0],[3.0,4.0]], options=[['abcsdasas asa','b'],['','dasasas as->']])
 
     s1 = createWidget(type="String", quickid="name",description="",value="testxxx", maxlength=10)
