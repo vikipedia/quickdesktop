@@ -382,14 +382,14 @@ class String(gtk.HBox, QuickWidget):
     Widget for taking string inputs
     """
     
-    def __init__(self, quickid=None, description=None, value=None, maxlength=200, validator=lambda x:x, hideon=None, homogeneous=True):
+    def __init__(self, quickid=None, description=None, value=None, maxlength=400, validator=lambda x:x, hideon=None, homogeneous=True):
         QuickWidget.__init__(self,quickid, description, value, validator, hideon=hideon)
         gtk.HBox.__init__(self, homogeneous, 0)
         self.type = "String"
         
         self.descriptionlabel = _Label(self.description)
         self.entry = gtk.Entry()
-        self.entry.set_max_length(maxlength)
+        #self.entry.set_max_length(maxlength)
         self.entry.set_size_request(200,30)
         if value!=None: self.entry.set_text(value)
         

@@ -58,6 +58,7 @@ class ToolWindow(common.Singleton, gtk.Window):
             self.vbox.pack_start(self.toolbar, False, True, 0)
         
         self.lefthpaned = gtk.HPaned()
+        self.lefthpaned.set_position(250)
         self.righthpaned = None
         self.addSideBars(self.toolconf.getSidebars())
 
